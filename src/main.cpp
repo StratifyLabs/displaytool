@@ -78,7 +78,10 @@ int main(int argc, char * argv[]){
 				 display.error_number());
 	}
 
-	display.ioctl(I_DISPLAY_INIT);
+	display_attr_t display_attr;
+
+	display_attr.o_flags = DISPLAY_FLAG_INIT;
+	display.ioctl(I_DISPLAY_SETATTR, &display_attr);
 
 
 	if( display.to_void() == 0 ){
@@ -92,13 +95,11 @@ int main(int argc, char * argv[]){
 		exit(1);
 	}
 
-	Timer t;
+	chrono::Timer t;
 
-	display.set_pen_color(0);
 	display.draw_rectangle(Point(0,0), display.area());
 	printer.open_object("display") << display.area() << printer.close();
 
-	display.set_pen_color(color);
 
 
 	if( action == "line" ){
@@ -149,7 +150,7 @@ int main(int argc, char * argv[]){
 
 		for(u32 i=0; i < count_width; i++){
 			for(u32 j=0; j < count_height; j++){
-				display.set_pen_color(i*display.bits_per_pixel() + j);
+				display.set_pen( display.pen().set_color(i*display.bits_per_pixel() + j));
 				display.draw_rectangle(Point(i*step_width, j*step_height), Area(step_width, step_height));
 			}
 		}
@@ -175,6 +176,7 @@ int main(int argc, char * argv[]){
 		t.restart();
 		display.write(display.bmap(), sizeof(sg_bmap_t));
 		t.stop();
+		printer.key("write result", "%d, %d %d", display.result(), display.error_number(), ((Bitmap&)display).size());
 		printer.key("write time", F32U, t.microseconds());
 	}
 

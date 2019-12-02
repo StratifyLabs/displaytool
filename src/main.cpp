@@ -8,9 +8,9 @@
 #include "sl_config.h"
 
 static void show_usage(const Cli & cli);
-static Point input_to_point(const ConstString & input);
-static Area input_to_area(const ConstString & input);
-static bool is_memory_ok(const ConstString & application_path, const DisplayDevice & device);
+static Point input_to_point(const String & input);
+static Area input_to_area(const String & input);
+static bool is_memory_ok(const String & application_path, const DisplayDevice & device);
 
 int main(int argc, char * argv[]){
 	Cli cli(argc, argv);
@@ -29,27 +29,58 @@ int main(int argc, char * argv[]){
 
 
 
-	action = cli.get_option("action", "specify the operation line|rect");
-	device = cli.get_option("device", "specify the operation line|rect");
-	is_help = cli.get_option("help", "display usage");
-	is_stdout = cli.get_option("stdout", "print the image to the standard output");
+	action = cli.get_option(
+				"action",
+				Cli::Description("specify the operation line|rect")
+				);
+	device = cli.get_option(
+				"device",
+				Cli::Description("specify the operation line|rect")
+				);
+	is_help = cli.get_option(
+				"help",
+				Cli::Description("display usage")
+				);
+	is_stdout = cli.get_option(
+				"stdout",
+				Cli::Description("print the image to the standard output")
+				);
 
-	tmp = cli.get_option("color", "specify color to draw as an integer");
+	tmp = cli.get_option(
+				"color",
+				Cli::Description("specify color to draw as an integer")
+				);
+
 	if( tmp.is_empty() ){
 		color = 0xffffffff;
 	} else {
 		color = tmp.to_integer();
 	}
 
-	tmp = cli.get_option("p1", "specify the value of p1 for line|rect|cbez|qbez as x.y");
+	tmp = cli.get_option(
+				"p1",
+				Cli::Description("specify the value of p1 for line|rect|cbez|qbez as x.y")
+				);
 	p1 = input_to_point(tmp);
-	tmp = cli.get_option("p2", "specify the value of p2 for line|cbez|qbez as x.y");
+	tmp = cli.get_option(
+				"p2",
+				Cli::Description("specify the value of p2 for line|cbez|qbez as x.y")
+				);
 	p2 = input_to_point(tmp);
-	tmp = cli.get_option("p3", "specify the value of p3 for line|cbez|qbez as x.y");
+	tmp = cli.get_option(
+				"p3",
+				Cli::Description("specify the value of p3 for line|cbez|qbez as x.y")
+				);
 	p3 = input_to_point(tmp);
-	tmp = cli.get_option("p4", "specify the value of p4 for line|cbez as x.y");
+	tmp = cli.get_option(
+				"p4",
+				Cli::Description("specify the value of p4 for line|cbez as x.y")
+				);
 	p4 = input_to_point(tmp);
-	tmp = cli.get_option("area", "specify the value of area for rect as wxh");
+	tmp = cli.get_option(
+				"area",
+				Cli::Description("specify the value of area for rect as wxh")
+				);
 	area = input_to_area(tmp);
 
 	if( is_help.is_empty() == false ){
@@ -62,7 +93,10 @@ int main(int argc, char * argv[]){
 		device = "/dev/display0";
 	}
 
-	if( display.open(device, DisplayDevice::READWRITE) < 0 ){
+	if( display.open(
+			 device,
+			 fs::OpenFlags::read_write()
+			 ) < 0 ){
 		printer.error("failed to open the display device");
 		exit(1);
 	}
@@ -75,7 +109,8 @@ int main(int argc, char * argv[]){
 	if( display.initialize(device) < 0 ){
 		printf("Failed to initialize display (%d, %d)\n",
 				 display.return_value(),
-				 display.error_number());
+				 display.error_number()
+				 );
 	}
 
 	display_attr_t display_attr;
@@ -191,7 +226,10 @@ int main(int argc, char * argv[]){
 	return 0;
 }
 
-bool is_memory_ok(const ConstString & application_path, const DisplayDevice & device){
+bool is_memory_ok(
+		const String & application_path,
+		const DisplayDevice & device
+		){
 	bool result = false;
 
 	DisplayInfo display_info;
@@ -213,12 +251,12 @@ void show_usage(const Cli & cli){
 	exit(1);
 }
 
-Point input_to_point(const ConstString & input){
+Point input_to_point(const String & input){
 	Tokenizer values(input, ".");
 	return Point(values.at(0).to_integer(), values.at(1).to_integer());
 }
 
-Area input_to_area(const ConstString & input){
+Area input_to_area(const String & input){
 	Tokenizer values(input, "x");
 	return Area(values.at(0).to_integer(), values.at(1).to_integer());
 }
